@@ -343,7 +343,6 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
       if (!enableOverwriteOutput && await fs.pathExists(path)) throw new RefuseOverwriteError();
     }
 
-
     // This function will either call cutSingle (if no smart cut enabled)
     // or if enabled, will first cut&encode the part before the next keyframe, trying to match the input file's codec params
     // then it will cut the part *from* the keyframe to "end", and concat them together and return the concated file
@@ -441,6 +440,35 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
     }
   }, [concatFiles, cutSingle, filePath]);
 
+  const makeGifs = async ({outputDir, outFormats, gifSize, segments, segmentsFileNames}) => {
+    const framesPath = outputDir + '/frames';
+
+    await fs.rmdir(framesPath, { recursive: true, force: true }).catch((err) => console.error('Failed to delete', framesPath, err));
+    fs.mkdirSync(framesPath);
+
+    for (const [index, segment] of segments.entries()) {
+      const crop = segment.crop ? `,crop=${segment.crop}` : '';
+      const path = `${framesPath}/f${index}%04d.png`;
+
+      const ffmpegArgs = [
+        '-i', `${outputDir}/${segmentsFileNames[index]}`,
+        '-r', 9,
+        '-f', 'image2',
+        '-vf', `nlmeans='1.0:7:5:3:3'${crop}`,
+        '-s', gifSize,
+        path
+      ];
+
+      const process = runFfmpeg(ffmpegArgs);
+      const { stdout } = await process;
+      console.log(stdout);
+    }
+
+    // convert -delay 3.5 -geometry 764x478 frames/f*.png -ordered-dither o8x8,23 -loop 0 -layers OptimizeFrame +map ${input%.*}.mp4
+    // convert -delay 3.5 -geometry 764x478 frames/f*.png -ordered-dither o8x8,23 -loop 0 -layers OptimizeFrame +map ${input %.*}.webm
+    // convert -delay 3.5 -geometry 382x239 frames/f*.png -layers OptimizeFrame -loop 0 +map ${input %.*}.gif
+  };
+
   const autoConcatCutSegments = useCallback(async ({ customOutDir, isCustomFormatSelected, outFormat, segmentPaths, ffmpegExperimental, onProgress, preserveMovData, movFastStart, autoDeleteMergedSegments, chapterNames, preserveMetadataOnMerge, appendFfmpegCommandLog }) => {
     const ext = getOutFileExtension({ isCustomFormatSelected, outFormat, filePath });
     const outPath = getSuffixedOutPath({ customOutDir, filePath, nameSuffix: `cut-merged-${new Date().getTime()}${ext}` });
@@ -512,7 +540,7 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
   }, [filePath, optionalTransferTimestamps]);
 
   return {
-    cutMultiple, concatFiles, html5ify, html5ifyDummy, fixInvalidDuration, autoConcatCutSegments,
+    cutMultiple, makeGifs, concatFiles, html5ify, html5ifyDummy, fixInvalidDuration, autoConcatCutSegments,
   };
 }
 

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, Select, CrossIcon } from 'evergreen-ui';
+import { Button, Select, CrossIcon, TextInput } from 'evergreen-ui';
 import { FaRegCheckCircle } from 'react-icons/fa';
 import i18n from 'i18next';
 import { useTranslation, Trans } from 'react-i18next';
@@ -47,7 +47,7 @@ const ExportConfirm = memo(({
 }) => {
   const { t } = useTranslation();
 
-  const { changeOutDir, keyframeCut, preserveMovData, movFastStart, avoidNegativeTs, setAvoidNegativeTs, autoDeleteMergedSegments, exportConfirmEnabled, toggleExportConfirmEnabled, segmentsToChapters, toggleSegmentsToChapters, preserveMetadataOnMerge, togglePreserveMetadataOnMerge, enableSmartCut, setEnableSmartCut, effectiveExportMode } = useUserSettings();
+  const { changeOutDir, keyframeCut, preserveMovData, movFastStart, avoidNegativeTs, setAvoidNegativeTs, gifSize, setGifSize, makeGif, toggleMakeGif, autoDeleteMergedSegments, exportConfirmEnabled, toggleExportConfirmEnabled, segmentsToChapters, toggleSegmentsToChapters, preserveMetadataOnMerge, togglePreserveMetadataOnMerge, enableSmartCut, setEnableSmartCut, effectiveExportMode } = useUserSettings();
 
   const isMov = ffmpegIsMov(outFormat);
   const isIpod = outFormat === 'ipod';
@@ -109,6 +109,11 @@ const ExportConfirm = memo(({
     };
     toast.fire({ icon: 'info', timer: 10000, text: `${avoidNegativeTs}: ${texts[avoidNegativeTs]}` });
   }, [avoidNegativeTs]);
+
+  const onGifSizeHelpPress = useCallback(() => {
+    toast.fire({ icon: 'info', timer: 10000, text: `Specify output GIF size, for example 640x480. Make sure to use the same ratio as your video streams to avoid unwanted stretching.` });
+  }, [gifSize]);
+
 
   const outSegTemplateHelpIcon = <HelpIcon onClick={onOutSegTemplateHelpPress} />;
 
@@ -215,6 +220,18 @@ const ExportConfirm = memo(({
                       <HelpIcon onClick={onAvoidNegativeTsHelpPress} />
                     </li>
                   )}
+                </ul>
+
+                <h3>{t('Make gif')}</h3>
+                <ul>
+                  <li>
+                    {t('Do you want to make gif?')} <Button height={20} onClick={toggleMakeGif}>{makeGif ? t('Yes') : t('No')}</Button>
+                  </li>
+                  <li>
+                    {t('Output size')}
+                    <TextInput height={20} value={gifSize} onChange={(e) => setGifSize(e.target.value)} style={{ marginLeft: 5 }} />
+                    <HelpIcon onClick={onGifSizeHelpPress} />
+                  </li>
                 </ul>
               </div>
             </div>

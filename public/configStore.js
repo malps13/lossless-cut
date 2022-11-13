@@ -95,6 +95,8 @@ const defaults = {
   ffmpegExperimental: false,
   preserveMovData: false,
   movFastStart: true,
+  makeGif: false,
+  gifSize: '640x480',
   avoidNegativeTs: 'make_zero',
   hideNotifications: undefined,
   autoLoadTimecode: false,
