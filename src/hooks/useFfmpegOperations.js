@@ -4,7 +4,7 @@ import sum from 'lodash/sum';
 import pMap from 'p-map';
 
 import { getSuffixedOutPath, transferTimestamps, getOutFileExtension, getOutDir, deleteDispositionValue, getHtml5ifiedPath } from '../util';
-import { isCuttingStart, isCuttingEnd, handleProgress, getFfCommandLine, getFfmpegPath, getDuration, runFfmpeg, createChaptersFromSegments, readFileMeta, cutEncodeSmartPart, getExperimentalArgs, html5ify as ffmpegHtml5ify, getVideoTimescaleArgs, RefuseOverwriteError } from '../ffmpeg';
+import { isCuttingStart, isCuttingEnd, handleProgress, getFfCommandLine, getFfmpegPath, getDuration, runFfmpeg, createChaptersFromSegments, readFileMeta, cutEncodeSmartPart, getExperimentalArgs, html5ify as ffmpegHtml5ify, getVideoTimescaleArgs, RefuseOverwriteError, runConvert } from '../ffmpeg';
 import { getMapStreamsArgs, getStreamIdsToCopy } from '../util/streams';
 import { getSmartCutParams } from '../smartcut';
 
@@ -464,9 +464,19 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
       console.log(stdout);
     }
 
-    // convert -delay 3.5 -geometry 764x478 frames/f*.png -ordered-dither o8x8,23 -loop 0 -layers OptimizeFrame +map ${input%.*}.mp4
-    // convert -delay 3.5 -geometry 764x478 frames/f*.png -ordered-dither o8x8,23 -loop 0 -layers OptimizeFrame +map ${input %.*}.webm
-    // convert -delay 3.5 -geometry 382x239 frames/f*.png -layers OptimizeFrame -loop 0 +map ${input %.*}.gif
+    for (const outFormat of outFormats) {
+      const process = runConvert([
+        '-delay', 3.5,
+        '-geometry', gifSize,
+        framesPath + "/f*.png",
+        '-ordered-dither', 'o8x8,23',
+        '-loop', 0,
+        '-layers', 'OptimizeFrame',
+        '+map', `${outputDir}/output.${outFormat}`,
+      ]);
+      const { stdout } = await process;
+      console.log(stdout);
+    }
   };
 
   const autoConcatCutSegments = useCallback(async ({ customOutDir, isCustomFormatSelected, outFormat, segmentPaths, ffmpegExperimental, onProgress, preserveMovData, movFastStart, autoDeleteMergedSegments, chapterNames, preserveMetadataOnMerge, appendFfmpegCommandLog }) => {

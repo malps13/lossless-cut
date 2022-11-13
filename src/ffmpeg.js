@@ -61,6 +61,10 @@ export function runFfmpeg(args) {
   return execa(ffmpegPath, args);
 }
 
+export function runConvert(args) {
+  console.log(getFfCommandLine('convert', args));
+  return execa('convert', args);
+}
 
 export function handleProgress(process, cutDuration, onProgress, customMatcher = () => {}) {
   if (!onProgress) return;
