@@ -29,6 +29,7 @@ import UserSettingsContext from './contexts/UserSettingsContext';
 
 import NoFileLoaded from './NoFileLoaded';
 import Canvas from './Canvas';
+import Crop from './Crop';
 import TopMenu from './TopMenu';
 import Sheet from './Sheet';
 import LastCommandsSheet from './LastCommandsSheet';
@@ -70,7 +71,7 @@ import {
 } from './util';
 import { formatDuration } from './util/duration';
 import { adjustRate } from './util/rate-calculator';
-import { askForOutDir, askForInputDir, askForImportChapters, createNumSegments as createNumSegmentsDialog, createFixedDurationSegments as createFixedDurationSegmentsDialog, createRandomSegments as createRandomSegmentsDialog, promptTimeOffset, askForHtml5ifySpeed, askForFileOpenAction, confirmExtractAllStreamsDialog, showCleanupFilesDialog, showDiskFull, showCutFailedDialog, labelSegmentDialog, openYouTubeChaptersDialog, openAbout, showEditableJsonDialog, askForShiftSegments, selectSegmentsByLabelDialog, confirmExtractFramesAsImages, showRefuseToOverwrite } from './dialogs';
+import { askForOutDir, askForInputDir, askForImportChapters, createNumSegments as createNumSegmentsDialog, createFixedDurationSegments as createFixedDurationSegmentsDialog, createRandomSegments as createRandomSegmentsDialog, promptTimeOffset, askForHtml5ifySpeed, askForFileOpenAction, confirmExtractAllStreamsDialog, showCleanupFilesDialog, showDiskFull, showCutFailedDialog, cropSegmentDialog, labelSegmentDialog, openYouTubeChaptersDialog, openAbout, showEditableJsonDialog, askForShiftSegments, selectSegmentsByLabelDialog, confirmExtractFramesAsImages, showRefuseToOverwrite } from './dialogs';
 import { openSendReportDialog } from './reporting';
 import { fallbackLng } from './i18n';
 import { createSegment, getCleanCutSegments, getSegApparentStart, findSegmentsAtCursor, sortSegments, invertSegments, getSegmentTags, convertSegmentsToChapters, hasAnySegmentOverlap } from './segments';
@@ -201,7 +202,7 @@ const App = memo(() => {
   const allUserSettings = useUserSettingsRoot();
 
   const {
-    captureFormat, setCaptureFormat, customOutDir, setCustomOutDir, keyframeCut, setKeyframeCut, preserveMovData, setPreserveMovData, movFastStart, setMovFastStart, avoidNegativeTs, autoMerge, timecodeFormat, invertCutSegments, setInvertCutSegments, autoExportExtraStreams, askBeforeClose, enableAskForImportChapters, enableAskForFileOpenAction, playbackVolume, setPlaybackVolume, autoSaveProjectFile, wheelSensitivity, invertTimelineScroll, language, ffmpegExperimental, hideNotifications, autoLoadTimecode, autoDeleteMergedSegments, exportConfirmEnabled, setExportConfirmEnabled, segmentsToChapters, setSegmentsToChapters, preserveMetadataOnMerge, setPreserveMetadataOnMerge, setSimpleMode, outSegTemplate, setOutSegTemplate, keyboardSeekAccFactor, keyboardNormalSeekSpeed, enableTransferTimestamps, outFormatLocked, setOutFormatLocked, safeOutputFileName, setSafeOutputFileName, enableAutoHtml5ify, segmentsToChaptersOnly, keyBindings, setKeyBindings, resetKeyBindings, enableSmartCut, customFfPath, storeProjectInWorkingDir, enableOverwriteOutput, mouseWheelZoomModifierKey,
+    captureFormat, setCaptureFormat, customOutDir, setCustomOutDir, keyframeCut, setKeyframeCut, preserveMovData, setPreserveMovData, movFastStart, setMovFastStart, avoidNegativeTs, autoMerge, timecodeFormat, invertCutSegments, setInvertCutSegments, autoExportExtraStreams, askBeforeClose, enableAskForImportChapters, enableAskForFileOpenAction, playbackVolume, setPlaybackVolume, autoSaveProjectFile, wheelSensitivity, invertTimelineScroll, language, ffmpegExperimental, hideNotifications, autoLoadTimecode, autoDeleteMergedSegments, exportConfirmEnabled, setExportConfirmEnabled, segmentsToChapters, setSegmentsToChapters, preserveMetadataOnMerge, setPreserveMetadataOnMerge, setSimpleMode, cropMode, setCropMode, outSegTemplate, setOutSegTemplate, keyboardSeekAccFactor, keyboardNormalSeekSpeed, enableTransferTimestamps, outFormatLocked, setOutFormatLocked, safeOutputFileName, setSafeOutputFileName, enableAutoHtml5ify, segmentsToChaptersOnly, keyBindings, setKeyBindings, resetKeyBindings, enableSmartCut, customFfPath, storeProjectInWorkingDir, enableOverwriteOutput, mouseWheelZoomModifierKey,
   } = allUserSettings;
 
   useEffect(() => {
@@ -736,6 +737,12 @@ const App = memo(() => {
     return newValue;
   }), [hideAllNotifications, setInvertCutSegments, setSimpleMode]);
 
+  const toggleCropMode = useCallback(() => setCropMode((v) => {
+    if (!hideAllNotifications) toast.fire({ text: v ? i18n.t('Crop mode has been disabled.') : i18n.t('Crop mode has been enabled.') });
+    const newValue = !v;
+    return newValue;
+  }), [hideAllNotifications, setCropMode]);
+
   const effectiveExportMode = useMemo(() => {
     if (segmentsToChaptersOnly) return 'sesgments_to_chapters';
     if (autoMerge && autoDeleteMergedSegments) return 'merge';
@@ -744,8 +751,8 @@ const App = memo(() => {
   }, [autoDeleteMergedSegments, autoMerge, segmentsToChaptersOnly]);
 
   const userSettingsContext = useMemo(() => ({
-    ...allUserSettings, toggleCaptureFormat, changeOutDir, toggleKeyframeCut, togglePreserveMovData, toggleMovFastStart, toggleExportConfirmEnabled, toggleSegmentsToChapters, togglePreserveMetadataOnMerge, toggleSimpleMode, toggleSafeOutputFileName, effectiveExportMode,
-  }), [allUserSettings, changeOutDir, effectiveExportMode, toggleCaptureFormat, toggleExportConfirmEnabled, toggleKeyframeCut, toggleMovFastStart, togglePreserveMetadataOnMerge, togglePreserveMovData, toggleSafeOutputFileName, toggleSegmentsToChapters, toggleSimpleMode]);
+    ...allUserSettings, toggleCaptureFormat, changeOutDir, toggleKeyframeCut, togglePreserveMovData, toggleMovFastStart, toggleExportConfirmEnabled, toggleSegmentsToChapters, togglePreserveMetadataOnMerge, toggleSimpleMode, toggleCropMode, toggleSafeOutputFileName, effectiveExportMode,
+  }), [allUserSettings, changeOutDir, effectiveExportMode, toggleCaptureFormat, toggleExportConfirmEnabled, toggleKeyframeCut, toggleMovFastStart, togglePreserveMetadataOnMerge, togglePreserveMovData, toggleSafeOutputFileName, toggleSegmentsToChapters, toggleSimpleMode, toggleCropMode]);
 
   const isCopyingStreamId = useCallback((path, streamId) => (
     !!(copyStreamIdsByFile[path] || {})[streamId]
@@ -1189,6 +1196,12 @@ const App = memo(() => {
     if (value != null) updateSegAtIndex(index, { name: value });
   }, [cutSegments, updateSegAtIndex, maxLabelLength]);
 
+  const onCropSegment = useCallback(async (index, streamInfo) => {
+    const { crop } = cutSegments[index];
+    const value = await cropSegmentDialog({ currentCrop: crop, streamInfo: { width: streamInfo.width, height: streamInfo.height } });
+    if (value != null) updateSegAtIndex(index, { crop: value });
+  }, [cutSegments, updateSegAtIndex]);
+  
   const onLabelSelectedSegments = useCallback(async () => {
     if (selectedSegmentsRaw.length < 1) return;
     const { name } = selectedSegmentsRaw[0];
@@ -2065,6 +2078,7 @@ const App = memo(() => {
       removeCurrentSegment: () => removeCutSegment(currentSegIndexSafe),
       undo: () => cutSegmentsHistory.back(),
       redo: () => cutSegmentsHistory.forward(),
+      cropCurrentSegment: () => { onCropSegment(currentSegIndexSafe, mainVideoStream); return false; },
       labelCurrentSegment: () => { onLabelSegment(currentSegIndexSafe); return false; },
       addSegment,
       toggleLastCommands: () => { toggleLastCommands(); return false; },
@@ -2137,7 +2151,7 @@ const App = memo(() => {
     if (match) return bubble;
 
     return true; // bubble the event
-  }, [addSegment, askSetStartTimeOffset, batchFileJump, batchOpenSelectedFile, captureSnapshot, captureSnapshotAsCoverArt, changePlaybackRate, cleanupFilesDialog, clearSegments, closeBatch, closeExportConfirm, concatCurrentBatch, concatDialogVisible, convertFormatBatch, createFixedDurationSegments, createNumSegments, createRandomSegments, currentSegIndexSafe, cutSegmentsHistory, deselectAllSegments, exportConfirmVisible, extractAllStreams, extractCurrentSegmentFramesAsImages, fillSegmentsGaps, goToTimecode, increaseRotation, invertAllSegments, jumpCutEnd, jumpCutStart, jumpSeg, jumpTimelineEnd, jumpTimelineStart, keyboardNormalSeekSpeed, keyboardSeekAccFactor, keyboardShortcutsVisible, onExportConfirm, onExportPress, onLabelSegment, pause, play, removeCutSegment, removeSelectedSegments, reorderSegsByStartTime, seekClosestKeyframe, seekRel, seekRelPercent, selectAllSegments, selectOnlyCurrentSegment, setCutEnd, setCutStart, setPlaybackVolume, shortStep, shuffleSegments, splitCurrentSegment, timelineToggleComfortZoom, toggleCaptureFormat, toggleCurrentSegmentSelected, toggleKeyboardShortcuts, toggleKeyframeCut, toggleLastCommands, togglePlay, toggleSegmentsList, toggleStreamsSelector, toggleStripAudio, tryFixInvalidDuration, userHtml5ifyCurrentFile, zoomRel]);
+  }, [addSegment, askSetStartTimeOffset, batchFileJump, batchOpenSelectedFile, captureSnapshot, captureSnapshotAsCoverArt, changePlaybackRate, cleanupFilesDialog, clearSegments, closeBatch, closeExportConfirm, concatCurrentBatch, concatDialogVisible, convertFormatBatch, createFixedDurationSegments, createNumSegments, createRandomSegments, currentSegIndexSafe, cutSegmentsHistory, deselectAllSegments, exportConfirmVisible, extractAllStreams, extractCurrentSegmentFramesAsImages, fillSegmentsGaps, goToTimecode, increaseRotation, invertAllSegments, jumpCutEnd, jumpCutStart, jumpSeg, jumpTimelineEnd, jumpTimelineStart, keyboardNormalSeekSpeed, keyboardSeekAccFactor, keyboardShortcutsVisible, onExportConfirm, onExportPress, onCropSegment, onLabelSegment, pause, play, removeCutSegment, removeSelectedSegments, reorderSegsByStartTime, seekClosestKeyframe, seekRel, seekRelPercent, selectAllSegments, selectOnlyCurrentSegment, setCutEnd, setCutStart, setPlaybackVolume, shortStep, shuffleSegments, splitCurrentSegment, timelineToggleComfortZoom, toggleCaptureFormat, toggleCurrentSegmentSelected, toggleKeyboardShortcuts, toggleKeyframeCut, toggleLastCommands, togglePlay, toggleSegmentsList, toggleStreamsSelector, toggleStripAudio, tryFixInvalidDuration, userHtml5ifyCurrentFile, zoomRel]);
 
   useKeyboard({ keyBindings, onKeyPress });
 
@@ -2361,6 +2375,50 @@ const App = memo(() => {
 
   // throw new Error('Test error boundary');
 
+  let videoContent = (
+    <div className="no-user-select" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, visibility: !isFileOpened ? 'hidden' : undefined }} onWheel={onTimelineWheel}>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <video
+        muted={playbackVolume === 0}
+        ref={videoRef}
+        style={videoStyle}
+        src={fileUri}
+        onPlay={onSartPlaying}
+        onPause={onStopPlaying}
+        onDurationChange={onDurationChange}
+        onTimeUpdate={onTimeUpdate}
+        onError={onVideoError}
+      >
+        {renderSubtitles()}
+      </video>
+
+      {canvasPlayerEnabled && <Canvas rotate={effectiveRotation} filePath={filePath} width={mainVideoStream.width} height={mainVideoStream.height} streamIndex={mainVideoStream.index} playerTime={playerTime} commandedTime={commandedTime} playing={playing} />}
+    </div>
+  )
+
+  if (cropMode) {
+    videoContent = (
+      <Crop
+        {...mainVideoStream && {
+          stream: {
+            width: mainVideoStream.width,
+            height: mainVideoStream.height,
+          }
+        }}
+        {...videoRef && videoRef.current && {
+          viewport: {
+            width: videoRef.current.clientWidth,
+            height: videoRef.current.clientHeight,
+          }
+        }}
+        crop={currentCutSeg.crop}
+        onCrop={(crop) => { updateSegAtIndex(currentSegIndex, { crop }) }}
+      >
+        {videoContent}
+      </Crop>
+    )
+  }
+
   return (
     <UserSettingsContext.Provider value={userSettingsContext}>
       <ThemeProvider value={theme}>
@@ -2402,24 +2460,7 @@ const App = memo(() => {
             <div style={{ position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
               {!isFileOpened && <NoFileLoaded mifiLink={mifiLink} currentCutSeg={currentCutSeg} />}
 
-              <div className="no-user-select" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, visibility: !isFileOpened ? 'hidden' : undefined }} onWheel={onTimelineWheel}>
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                <video
-                  muted={playbackVolume === 0}
-                  ref={videoRef}
-                  style={videoStyle}
-                  src={fileUri}
-                  onPlay={onSartPlaying}
-                  onPause={onStopPlaying}
-                  onDurationChange={onDurationChange}
-                  onTimeUpdate={onTimeUpdate}
-                  onError={onVideoError}
-                >
-                  {renderSubtitles()}
-                </video>
-
-                {canvasPlayerEnabled && <Canvas rotate={effectiveRotation} filePath={filePath} width={mainVideoStream.width} height={mainVideoStream.height} streamIndex={mainVideoStream.index} playerTime={playerTime} commandedTime={commandedTime} playing={playing} />}
-              </div>
+              {videoContent}
 
               {isRotationSet && !hideCanvasPreview && (
                 <div style={{ position: 'absolute', top: 0, right: 0, left: 0, marginTop: '1em', marginLeft: '1em', color: 'white', display: 'flex', alignItems: 'center' }}>
@@ -2466,6 +2507,7 @@ const App = memo(() => {
                   onSegClick={setCurrentSegIndex}
                   updateSegOrder={updateSegOrder}
                   updateSegOrders={updateSegOrders}
+                  onCropSegment={onCropSegment}
                   onLabelSegment={onLabelSegment}
                   currentCutSeg={currentCutSeg}
                   segmentAtCursor={segmentAtCursor}
@@ -2486,6 +2528,7 @@ const App = memo(() => {
                   onViewSegmentTags={onViewSegmentTags}
                   onSelectSegmentsByLabel={onSelectSegmentsByLabel}
                   onLabelSelectedSegments={onLabelSelectedSegments}
+                  mainVideoStream={mainVideoStream}
                 />
               )}
             </AnimatePresence>

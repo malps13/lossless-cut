@@ -89,6 +89,8 @@ export default () => {
   useEffect(() => safeSetConfig('preserveMetadataOnMerge', preserveMetadataOnMerge), [preserveMetadataOnMerge]);
   const [simpleMode, setSimpleMode] = useState(safeGetConfigInitial('simpleMode'));
   useEffect(() => safeSetConfig('simpleMode', simpleMode), [simpleMode]);
+  const [cropMode, setCropMode] = useState(safeGetConfigInitial('cropMode'));
+  useEffect(() => safeSetConfig('cropMode', cropMode), [cropMode]);
   const [outSegTemplate, setOutSegTemplate] = useState(safeGetConfigInitial('outSegTemplate'));
   useEffect(() => safeSetConfig('outSegTemplate', outSegTemplate), [outSegTemplate]);
   const [keyboardSeekAccFactor, setKeyboardSeekAccFactor] = useState(safeGetConfigInitial('keyboardSeekAccFactor'));
@@ -183,7 +185,9 @@ export default () => {
     preserveMetadataOnMerge,
     setPreserveMetadataOnMerge,
     simpleMode,
+    cropMode,
     setSimpleMode,
+    setCropMode,
     outSegTemplate,
     setOutSegTemplate,
     keyboardSeekAccFactor,

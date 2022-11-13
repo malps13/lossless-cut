@@ -264,6 +264,10 @@ const KeyboardShortcuts = memo(({
           category: segmentsAndCutpointsCategory,
           before: <SetCutpointButton currentCutSeg={currentCutSeg} side="end" style={{ verticalAlign: 'middle', marginRight: 5 }} />,
         },
+        cropCurrentSegment: {
+          name: t('Crop current segment'),
+          category: segmentsAndCutpointsCategory,
+        },
         labelCurrentSegment: {
           name: t('Label current segment'),
           category: segmentsAndCutpointsCategory,

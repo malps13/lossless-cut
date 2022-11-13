@@ -16,6 +16,7 @@ import ToggleExportConfirm from './components/ToggleExportConfirm';
 import CaptureFormatButton from './components/CaptureFormatButton';
 
 import SimpleModeButton from './components/SimpleModeButton';
+import CropModeButton from './components/CropModeButton';
 import { withBlur, toast, mirrorTransform } from './util';
 import { getSegColor } from './util/colors';
 import { formatDuration, parseDuration } from './util/duration';
@@ -40,7 +41,7 @@ const BottomBar = memo(({
 }) => {
   const { t } = useTranslation();
 
-  const { invertCutSegments, setInvertCutSegments, simpleMode, toggleSimpleMode, exportConfirmEnabled } = useUserSettings();
+  const { invertCutSegments, setInvertCutSegments, simpleMode, cropMode, toggleSimpleMode, toggleCropMode, exportConfirmEnabled } = useUserSettings();
 
   const onYinYangClick = useCallback(() => {
     setInvertCutSegments(v => {
@@ -286,6 +287,10 @@ const BottomBar = memo(({
         <SimpleModeButton style={{ flexShrink: 0 }} />
 
         {simpleMode && <div role="button" onClick={toggleSimpleMode} style={{ marginLeft: 5, fontSize: '90%' }}>{t('Toggle advanced view')}</div>}
+
+        <CropModeButton style={{ flexShrink: 0 }} />
+
+        {simpleMode && <div role="button" onClick={toggleCropMode} style={{ marginLeft: 5, fontSize: '90%' }}>{t('Toggle crop mode')}</div>}
 
         {!simpleMode && (
           <>

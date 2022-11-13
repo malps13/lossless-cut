@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useRef, useCallback } from 'react';
-import { FaYinYang, FaSave, FaPlus, FaMinus, FaTag, FaSortNumericDown, FaAngleRight, FaRegCheckCircle, FaRegCircle } from 'react-icons/fa';
+import { FaYinYang, FaSave, FaPlus, FaMinus, FaTag, FaSortNumericDown, FaAngleRight, FaRegCheckCircle, FaRegCircle, FaCrop } from 'react-icons/fa';
 import { AiOutlineSplitCells } from 'react-icons/ai';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -21,7 +21,7 @@ const buttonBaseStyle = {
 const neutralButtonColor = 'rgba(255, 255, 255, 0.2)';
 
 
-const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCount, updateOrder, invertCutSegments, onClick, onRemovePress, onRemoveSelected, onLabelSelectedSegments, onReorderPress, onLabelPress, enabled, onSelectSingleSegment, onToggleSegmentSelected, onDeselectAllSegments, onSelectSegmentsByLabel, onSelectAllSegments, jumpSegStart, jumpSegEnd, addSegment, onViewSegmentTags, onExtractSegmentFramesAsImages }) => {
+const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCount, updateOrder, invertCutSegments, cropMode, onClick, onRemovePress, onRemoveSelected, onLabelSelectedSegments, onReorderPress, onCropPress, onLabelPress, enabled, onSelectSingleSegment, onToggleSegmentSelected, onDeselectAllSegments, onSelectSegmentsByLabel, onSelectAllSegments, jumpSegStart, jumpSegEnd, addSegment, onViewSegmentTags, onExtractSegmentFramesAsImages }) => {
   const { t } = useTranslation();
 
   const ref = useRef();
@@ -35,6 +35,7 @@ const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCou
       { type: 'separator' },
 
       { label: t('Add segment'), click: addSegment },
+      { label: t('Crop segment'), click: onCropPress },
       { label: t('Label segment'), click: onLabelPress },
       { label: t('Remove segment'), click: onRemovePress },
 
@@ -61,7 +62,7 @@ const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCou
       { label: t('Segment tags'), click: () => onViewSegmentTags(index) },
       { label: t('Extract all frames as images'), click: () => onExtractSegmentFramesAsImages(index) },
     ];
-  }, [invertCutSegments, t, jumpSegStart, jumpSegEnd, addSegment, onLabelPress, onRemovePress, onReorderPress, onRemoveSelected, onLabelSelectedSegments, updateOrder, onSelectSingleSegment, seg, onSelectAllSegments, onDeselectAllSegments, onSelectSegmentsByLabel, onViewSegmentTags, index, onExtractSegmentFramesAsImages]);
+  }, [invertCutSegments, t, jumpSegStart, jumpSegEnd, addSegment, onCropPress, onLabelPress, onRemovePress, onReorderPress, onRemoveSelected, onLabelSelectedSegments, updateOrder, onSelectSingleSegment, seg, onSelectAllSegments, onDeselectAllSegments, onSelectSegmentsByLabel, onViewSegmentTags, index, onExtractSegmentFramesAsImages]);
 
   useContextMenu(ref, contextMenuTemplate);
 
@@ -121,6 +122,11 @@ const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCou
         <span style={{ fontSize: Math.min(310 / timeStr.length, 14), whiteSpace: 'nowrap' }}>{timeStr}</span>
       </div>
       <div style={{ fontSize: 12, color: 'white' }}>{seg.name}</div>
+      {seg.crop && (
+        <div style={{ fontSize: 13 }}>
+          {t('Crop')} {seg.crop}
+        </div>
+      )}
       <div style={{ fontSize: 13 }}>
         {t('Duration')} {formatTimecode({ seconds: duration, shorten: true })}
       </div>
@@ -139,15 +145,15 @@ const Segment = memo(({ seg, index, currentSegIndex, formatTimecode, getFrameCou
 
 const SegmentList = memo(({
   width, formatTimecode, apparentCutSegments, inverseCutSegments, getFrameCount, onSegClick,
-  currentSegIndex,
+  currentSegIndex, mainVideoStream,
   updateSegOrder, updateSegOrders, addSegment, removeCutSegment, onRemoveSelected,
-  onLabelSegment, currentCutSeg, segmentAtCursor, toggleSegmentsList, splitCurrentSegment,
+  onCropSegment, onLabelSegment, currentCutSeg, segmentAtCursor, toggleSegmentsList, splitCurrentSegment,
   selectedSegments, selectedSegmentsRaw, onSelectSingleSegment, onToggleSegmentSelected, onDeselectAllSegments, onSelectAllSegments, onSelectSegmentsByLabel, onExtractSegmentFramesAsImages, onLabelSelectedSegments,
   jumpSegStart, jumpSegEnd, onViewSegmentTags,
 }) => {
   const { t } = useTranslation();
 
-  const { invertCutSegments, simpleMode } = useUserSettings();
+  const { invertCutSegments, simpleMode, cropMode } = useUserSettings();
 
   const segments = invertCutSegments ? inverseCutSegments : apparentCutSegments;
 
@@ -229,6 +235,16 @@ const SegmentList = memo(({
             </>
           )}
 
+          {cropMode && (
+            <FaCrop
+              size={16}
+              title={t('Crop segment')}
+              role="button"
+              style={{ ...buttonBaseStyle, padding: 4, background: currentSegColor }}
+              onClick={() => onCropSegment(currentSegIndex, mainVideoStream)}
+            />
+          )}
+
           <AiOutlineSplitCells
             size={22}
             title={t('Split segment at cursor')}
@@ -280,6 +296,7 @@ const SegmentList = memo(({
                 onRemoveSelected={onRemoveSelected}
                 onRemovePress={() => removeCutSegment(index)}
                 onReorderPress={() => onReorderSegs(index)}
+                onCropPress={() => onCropSegment(index, mainVideoStream)}
                 onLabelPress={() => onLabelSegment(index)}
                 jumpSegStart={() => jumpSegStart(index)}
                 jumpSegEnd={() => jumpSegEnd(index)}

@@ -62,6 +62,7 @@ const defaultKeyBindings = [
   { keys: 'ctrl+shift+z', action: 'redo' },
   { keys: 'command+shift+z', action: 'redo' },
 
+  { keys: 'v', action: 'cropCurrentSegment' },
   { keys: 'enter', action: 'labelCurrentSegment' },
 
   { keys: 'e', action: 'export' },
@@ -100,6 +101,7 @@ const defaults = {
   segmentsToChapters: false,
   preserveMetadataOnMerge: false,
   simpleMode: true,
+  cropMode: false,
   outSegTemplate: undefined,
   keyboardSeekAccFactor: 1.03,
   keyboardNormalSeekSpeed: 1,

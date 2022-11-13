@@ -8,6 +8,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { tomorrow as style } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import JSON5 from 'json5';
 
+import { parseCropString } from './segments';
 import { parseDuration, formatDuration } from './util/duration';
 import { parseYouTube } from './edlFormats';
 import CopyClipboardButton from './components/CopyClipboardButton';
@@ -479,6 +480,25 @@ export async function labelSegmentDialog({ currentName, maxLength }) {
     inputValue: currentName,
     input: 'text',
     inputValidator: (v) => (v.length > maxLength ? `${i18n.t('Max length')} ${maxLength}` : undefined),
+  });
+  return value;
+}
+
+export async function cropSegmentDialog({ currentCrop, streamInfo }) {
+  const { value } = await Swal.fire({
+    showCancelButton: true,
+    title: i18n.t('Crop current segment'),
+    inputLabel: `Format: width:height:offset_x:offset_y \nStream dimensions: ${streamInfo.width} x ${streamInfo.height}`,
+    inputValue: currentCrop,
+    inputValidator: (v) => {
+      if (v.length) {
+        if (!/^([0-9]*:[0-9]*:[0-9]*:[0-9]*)$/.test(v)) return `Wrong format`;
+        const crop = parseCropString(v);
+        if (crop.width > (streamInfo.width - crop.x)) return `Crop area extends the image horizontally`;
+        if (crop.height > (streamInfo.height - crop.y)) return `Crop area extends the image vertically`;
+      }
+    },    
+    input: 'text'
   });
   return value;
 }

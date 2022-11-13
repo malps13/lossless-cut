@@ -60,7 +60,7 @@ export async function saveLlcProject({ savePath, filePath, cutSegments }) {
   const projectData = {
     version: 1,
     mediaFileName: basename(filePath),
-    cutSegments: cutSegments.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
+    cutSegments: cutSegments.map(({ start, end, name, crop, tags }) => ({ start, end, name, crop, tags })),
   };
   await fs.writeFile(savePath, JSON5.stringify(projectData, null, 2));
 }

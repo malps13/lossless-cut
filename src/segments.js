@@ -1,9 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import sortBy from 'lodash/sortBy';
 
-export const createSegment = ({ start, end, name, tags, segColorIndex } = {}) => ({
+export const createSegment = ({ start, end, crop, speed, name, tags, segColorIndex } = {}) => ({
   start,
   end,
+  crop: crop || undefined,
   name: name || '',
   segId: uuidv4(),
   segColorIndex,
@@ -14,6 +15,13 @@ export const createSegment = ({ start, end, name, tags, segColorIndex } = {}) =>
     ? Object.fromEntries(Object.entries(tags).map(([key, value]) => [key, String(value)]))
     : undefined,
 });
+
+export function parseCropString(crop) {  
+  if (crop) {
+    const props = crop.split(':');
+    return { width: parseInt(props[0]), height: parseInt(props[1]), x: parseInt(props[2]), y: parseInt(props[3]) }
+  }
+}
 
 // Because segments could have undefined start / end
 // (meaning extend to start of timeline or end duration)
@@ -26,6 +34,7 @@ export const getCleanCutSegments = (cs) => cs.map((seg) => ({
   start: seg.start,
   end: seg.end,
   name: seg.name,
+  crop: seg.crop,
   tags: seg.tags,
 }));
 
