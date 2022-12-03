@@ -440,11 +440,16 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
     }
   }, [concatFiles, cutSingle, filePath]);
 
-  const makeGifs = async ({outputDir, outFormats, gifSize, segments, segmentsFileNames}) => {
+  const makeGifs = async ({ outputDir, outFormats, gifSize, gifFrameRate, segments, segmentsFileNames}) => {
     const framesPath = outputDir + '/frames';
 
     await fs.rmdir(framesPath, { recursive: true, force: true }).catch((err) => console.error('Failed to delete', framesPath, err));
     fs.mkdirSync(framesPath);
+
+    const frameRate = parseInt(gifFrameRate);
+    const gifDelay = 100.0 / frameRate; 
+    
+    console.log("Frame rate is " + frameRate + ", gifDelay is " + gifDelay);
 
     for (const [index, segment] of segments.entries()) {
       const crop = segment.crop ? `,crop=${segment.crop}` : '';
@@ -452,7 +457,7 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
 
       const ffmpegArgs = [
         '-i', `${outputDir}/${segmentsFileNames[index]}`,
-        '-r', 9,
+        '-r', frameRate,
         '-f', 'image2',
         '-vf', `nlmeans='1.0:7:5:3:3'${crop}`,
         '-s', gifSize,
@@ -465,15 +470,42 @@ function useFfmpegOperations({ filePath, enableTransferTimestamps }) {
     }
 
     for (const outFormat of outFormats) {
-      const process = runConvert([
-        '-delay', 3.5,
-        '-geometry', gifSize,
-        framesPath + "/f*.png",
-        '-ordered-dither', 'o8x8,23',
-        '-loop', 0,
-        '-layers', 'OptimizeFrame',
-        '+map', `${outputDir}/output.${outFormat}`,
-      ]);
+      let process = null;
+
+      const params = [
+      ];
+
+      if (outFormat == 'gif') {
+        process = runConvert([
+          '-delay', gifDelay,
+          '-geometry', gifSize,
+          framesPath + "/f*.png",
+          '-ordered-dither', 'o8x8,23',
+          '-loop', 0,
+          '-layers', 'OptimizeFrame',
+          '+map', `${outputDir}/output.${outFormat}`,
+        ])
+      } else if (outFormat == 'mp4') {
+        process = runFfmpeg([
+          '-r', frameRate,
+          '-y',
+          '-i', framesPath + "/f%05d.png",
+          '-c:v', 'libx264',
+          '-pix_fmt', 'yuv420p',
+          `${outputDir}/output.${outFormat}`,
+        ])
+      } else {
+        process = runFfmpeg([
+          '-r', frameRate,
+          '-f', 'image2',
+          '-y',
+          '-i', framesPath + "/f%05d.png",
+          '-c:v', 'libvpx',
+          '-pix_fmt', 'yuv420p',
+          `${outputDir}/output.${outFormat}`,
+        ])
+      }
+
       const { stdout } = await process;
       console.log(stdout);
     }

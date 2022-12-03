@@ -202,7 +202,7 @@ const App = memo(() => {
   const allUserSettings = useUserSettingsRoot();
 
   const {
-    captureFormat, setCaptureFormat, customOutDir, setCustomOutDir, keyframeCut, setKeyframeCut, preserveMovData, setPreserveMovData, movFastStart, setMovFastStart, avoidNegativeTs, autoMerge, timecodeFormat, invertCutSegments, setInvertCutSegments, autoExportExtraStreams, askBeforeClose, enableAskForImportChapters, enableAskForFileOpenAction, playbackVolume, setPlaybackVolume, autoSaveProjectFile, wheelSensitivity, invertTimelineScroll, language, ffmpegExperimental, hideNotifications, autoLoadTimecode, autoDeleteMergedSegments, exportConfirmEnabled, setExportConfirmEnabled, segmentsToChapters, setSegmentsToChapters, preserveMetadataOnMerge, setPreserveMetadataOnMerge, setSimpleMode, cropMode, setCropMode, outSegTemplate, setOutSegTemplate, keyboardSeekAccFactor, keyboardNormalSeekSpeed, enableTransferTimestamps, outFormatLocked, setOutFormatLocked, safeOutputFileName, setSafeOutputFileName, enableAutoHtml5ify, segmentsToChaptersOnly, keyBindings, setKeyBindings, resetKeyBindings, enableSmartCut, customFfPath, storeProjectInWorkingDir, enableOverwriteOutput, mouseWheelZoomModifierKey, gifSize, setGifSize, makeGif, setMakeGif
+    captureFormat, setCaptureFormat, customOutDir, setCustomOutDir, keyframeCut, setKeyframeCut, preserveMovData, setPreserveMovData, movFastStart, setMovFastStart, avoidNegativeTs, autoMerge, timecodeFormat, invertCutSegments, setInvertCutSegments, autoExportExtraStreams, askBeforeClose, enableAskForImportChapters, enableAskForFileOpenAction, playbackVolume, setPlaybackVolume, autoSaveProjectFile, wheelSensitivity, invertTimelineScroll, language, ffmpegExperimental, hideNotifications, autoLoadTimecode, autoDeleteMergedSegments, exportConfirmEnabled, setExportConfirmEnabled, segmentsToChapters, setSegmentsToChapters, preserveMetadataOnMerge, setPreserveMetadataOnMerge, setSimpleMode, cropMode, setCropMode, outSegTemplate, setOutSegTemplate, keyboardSeekAccFactor, keyboardNormalSeekSpeed, enableTransferTimestamps, outFormatLocked, setOutFormatLocked, safeOutputFileName, setSafeOutputFileName, enableAutoHtml5ify, segmentsToChaptersOnly, keyBindings, setKeyBindings, resetKeyBindings, enableSmartCut, customFfPath, storeProjectInWorkingDir, enableOverwriteOutput, mouseWheelZoomModifierKey, gifSize, setGifSize, gifFrameRate, setGifFrameRate, makeGif, setMakeGif
   } = allUserSettings;
 
   useEffect(() => {
@@ -1349,6 +1349,7 @@ const App = memo(() => {
           customOutDir,
           outFormats: ['gif', 'mp4', 'webm'],
           gifSize,
+          gifFrameRate,
           segments: segmentsToExport,
           segmentsFileNames: outSegFileNames,
         });

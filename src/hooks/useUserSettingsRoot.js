@@ -51,6 +51,8 @@ export default () => {
   useEffect(() => safeSetConfig('avoidNegativeTs', avoidNegativeTs), [avoidNegativeTs]);
   const [gifSize, setGifSize] = useState(safeGetConfigInitial('gifSize'));
   useEffect(() => safeSetConfig('gifSize', gifSize), [gifSize]);
+  const [gifFrameRate, setGifFrameRate] = useState(safeGetConfigInitial('gifFrameRate'));
+  useEffect(() => safeSetConfig('gifFrameRate', gifFrameRate), [gifFrameRate]);
   const [makeGif, setMakeGif] = useState(safeGetConfigInitial('makeGif'));
   useEffect(() => safeSetConfig('makeGif', makeGif), [makeGif]);
   const [autoMerge, setAutoMerge] = useState(safeGetConfigInitial('autoMerge'));
@@ -152,6 +154,8 @@ export default () => {
     setAvoidNegativeTs,
     gifSize,
     setGifSize,
+    gifFrameRate,
+    setGifFrameRate,
     makeGif,
     setMakeGif,
     autoMerge,

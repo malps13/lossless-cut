@@ -47,7 +47,7 @@ const ExportConfirm = memo(({
 }) => {
   const { t } = useTranslation();
 
-  const { changeOutDir, keyframeCut, preserveMovData, movFastStart, avoidNegativeTs, setAvoidNegativeTs, gifSize, setGifSize, makeGif, toggleMakeGif, autoDeleteMergedSegments, exportConfirmEnabled, toggleExportConfirmEnabled, segmentsToChapters, toggleSegmentsToChapters, preserveMetadataOnMerge, togglePreserveMetadataOnMerge, enableSmartCut, setEnableSmartCut, effectiveExportMode } = useUserSettings();
+  const { changeOutDir, keyframeCut, preserveMovData, movFastStart, avoidNegativeTs, setAvoidNegativeTs, gifSize, setGifSize, gifFrameRate, setGifFrameRate, makeGif, toggleMakeGif, autoDeleteMergedSegments, exportConfirmEnabled, toggleExportConfirmEnabled, segmentsToChapters, toggleSegmentsToChapters, preserveMetadataOnMerge, togglePreserveMetadataOnMerge, enableSmartCut, setEnableSmartCut, effectiveExportMode } = useUserSettings();
 
   const isMov = ffmpegIsMov(outFormat);
   const isIpod = outFormat === 'ipod';
@@ -226,6 +226,10 @@ const ExportConfirm = memo(({
                 <ul>
                   <li>
                     {t('Do you want to make gif?')} <Button height={20} onClick={toggleMakeGif}>{makeGif ? t('Yes') : t('No')}</Button>
+                  </li>
+                  <li>
+                    {t('Frame rate')}
+                    <TextInput height={20} value={gifFrameRate} onChange={(e) => setGifFrameRate(e.target.value)} style={{ marginLeft: 5 }} />
                   </li>
                   <li>
                     {t('Output size')}

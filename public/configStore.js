@@ -97,6 +97,7 @@ const defaults = {
   movFastStart: true,
   makeGif: false,
   gifSize: '640x480',
+  gifFrameRate: '12',
   avoidNegativeTs: 'make_zero',
   hideNotifications: undefined,
   autoLoadTimecode: false,
